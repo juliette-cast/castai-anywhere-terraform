@@ -80,7 +80,7 @@ terraform plan
 Deploy the CAST AI Agent and optional components:
 
 ```sh
-terraform apply -auto-approve
+terraform apply
 ```
 
 ### 6. Verify Deployment
@@ -108,5 +108,5 @@ castai-agent-597c687958-9gq4p                 1/1     Running   0          2m
 If you need to remove the deployment, run:
 
 ```sh
-terraform destroy -auto-approve
+terraform destroy
 ```
