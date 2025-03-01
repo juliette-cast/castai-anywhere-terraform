@@ -110,3 +110,7 @@ If you need to remove the deployment, run:
 ```sh
 terraform destroy
 ```
+or delete the castai-agent namespace
+```sh
+kubectl delete ns castai-agent
+```
