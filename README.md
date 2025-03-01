@@ -23,7 +23,7 @@ Before deploying, ensure you have the following installed and configured:
   [Install Helm](https://helm.sh/docs/intro/install/)
 
 You will also need:
-- A valid **CAST AI API Key**
+- A valid **CAST AI API Key** (https://docs.cast.ai/docs/authentication)
 - A unique cluster identifier (for example, `minikube-anywhere-cluster`)
 
 ## Repository Structure
