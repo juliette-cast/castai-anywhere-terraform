@@ -99,16 +99,18 @@ resource "helm_release" "castai_evictor" {
   timeout          = 600  
 
   set {
-    name  = "replicaCount"
-    value = "1"  # Ensure the evictor has at least one running instance
-  }
-  
-  set {
     name  = "managedByCASTAI"
-    value = "false"  # <-- This makes it self-managed
+    value = var.managed_by_castai
+  }
+  set {
+    name  = "replicaCount"
+    value = "1"
+  }
+    set {
+    name  = "aggressive_mode"
+    value = "true"
   }
 }
-
 
 # Install CAST AI Pod Mutator
 resource "helm_release" "castai_pod_mutator" {
