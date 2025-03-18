@@ -2,10 +2,11 @@
 
 This repository contains Terraform code to deploy CAST AI components on an "anywhere" (on-prem/Minikube) Kubernetes cluster. The configuration deploys two components:
 
-- **CAST AI Agent** (required)
-- **CAST AI Cluster Controller** (optional)
-
-The CAST AI Agent collects metrics and manages workload configurations to optimize your cluster. The Cluster Controller (if enabled) performs additional cluster operations.
+- **CAST AI Agent** 
+- **CAST AI Cluster Controller**
+- **CAST AI Evictor
+- **CAST AI Pod Mutator
+- **CAST AI Workload Autoscaler
 
 ## Prerequisites
 
@@ -33,10 +34,9 @@ You will also need:
   - Start Minikube and wait until it is ready.
   - Configure the Kubernetes and Helm providers (using the `minikube` context).
   - Create the required namespace.
-  - Deploy the CAST AI Agent.
-  - Optionally deploy the CAST AI Cluster Controller.
+  - Deploy the CAST AI Components.
 - **variables.tf**  
-  Defines variables for your CAST AI API key and cluster identifier.
+  Defines variables for CAST AI API key, cluster identifier, and configurations.
 - **outputs.tf**  
   Displays outputs such as the status of the deployed components.
 
@@ -75,15 +75,21 @@ Preview what Terraform will create:
 terraform plan
 ```
 
-### 5. Apply the Configuration
+### 5. 1st Apply the Configuration
 
-Deploy the CAST AI Agent and optional components:
+This will create the cluster and Deploy the CAST AI Agentand connect to the UI, then you will use the clustr ID from the console to add to your vaoraibles to deploy the other components
 
 ```sh
 terraform apply
 ```
 
-### 6. Verify Deployment
+### 6. 2nd Apply to deploy the other components
+
+```sh
+terraform apply
+```
+
+### 7. Verify Deployment
 
 Check the status of deployed components:
 
@@ -94,7 +100,17 @@ kubectl get pods -n castai-agent
 Expected output:
 ```sh
 NAME                                          READY   STATUS    RESTARTS   AGE
-castai-agent-597c687958-9gq4p                 1/1     Running   0          2m
+castai-agent-79bf777cc8-8w88l                 2/2     Running   0             22m
+castai-agent-79bf777cc8-kvf2q                 2/2     Running   0             22m
+castai-agent-cpvpa-964fc94b6-pqfzc            1/1     Running   0             23m
+castai-cluster-controller-77dffcd8f5-7jflv    2/2     Running   0             19m
+castai-cluster-controller-77dffcd8f5-cpnp6    2/2     Running   0             19m
+castai-evictor-64bdd9fb6c-tmxjv               1/1     Running   0             37s
+castai-evictor-cpvpa-6c6bdf8f74-r2m4b         1/1     Running   0             37s
+castai-pod-mutator-7556c5db85-pqrwx           1/1     Running   0             16m
+castai-pod-mutator-7556c5db85-tqzsh           1/1     Running   1             16m
+castai-workload-autoscaler-64655596c4-b72l7   1/1     Running   0             15m
+castai-workload-autoscaler-64655596c4-x7bj8   1/1     Running   1 (15m ago)   15m
 ```
 
 ### 7. Check CAST AI Console
