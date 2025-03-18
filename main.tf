@@ -11,23 +11,21 @@ data "external" "wait_for_minikube" {
   depends_on = [null_resource.start_minikube]
 }
 
-# Configure the Kubernetes provider to use the minikube context
+# Configure the Kubernetes provider
 provider "kubernetes" {
   config_path    = "~/.kube/config"
   config_context = "minikube"
-
 }
 
-# Configure the Helm provider using the same minikube context
+# Configure the Helm provider
 provider "helm" {
   kubernetes {
     config_path    = "~/.kube/config"
     config_context = "minikube"
   }
-
 }
 
-# Create the namespace "castai-agent" with the required Helm metadata
+# Create the namespace "castai-agent"
 resource "kubernetes_namespace" "castai" {
   depends_on = [data.external.wait_for_minikube]
   metadata {
@@ -42,7 +40,7 @@ resource "kubernetes_namespace" "castai" {
   }
 }
 
-# Install CAST AI Agent using the Helm chart with an increased timeout
+# Install CAST AI Agent
 resource "helm_release" "castai_agent" {
   depends_on       = [kubernetes_namespace.castai]
   name             = "castai-agent"
@@ -50,7 +48,7 @@ resource "helm_release" "castai_agent" {
   chart            = "castai-agent"
   namespace        = "castai-agent"
   create_namespace = false
-  timeout          = 600  # Wait up to 10 minutes
+  timeout          = 600  
 
   set {
     name  = "apiKey"
@@ -60,32 +58,105 @@ resource "helm_release" "castai_agent" {
     name  = "clusterName"
     value = var.cluster_name
   }
-  # Explicitly set the provider to "anywhere" so the agent knows its running in an on-prem cluster.
   set {
     name  = "provider"
     value = "anywhere"
   }
 }
 
-# resource "helm_release" "castai_cluster_controller" {
-#   depends_on       = [helm_release.castai_agent]
-#   name             = "castai-cluster-controller"
-#   repository       = "https://castai.github.io/helm-charts"
-#   chart            = "castai-cluster-controller"
-#   namespace        = "castai-agent"
-#   create_namespace = false
-#   timeout          = 600
+# Install CAST AI Cluster Controller
+resource "helm_release" "castai_cluster_controller" {
+  depends_on       = [helm_release.castai_agent]
+  name             = "castai-cluster-controller"
+  repository       = "https://castai.github.io/helm-charts"
+  chart            = "castai-cluster-controller"
+  namespace        = "castai-agent"
+  create_namespace = false
+  timeout          = 600  
 
-#   set {
-#     name  = "castai.clusterID"
-#     value = var.cluster_id
-#   }
-#   set {
-#     name  = "provider"
-#     value = "anywhere"
-#   }
-#   set {
-#     name  = "apiKey"
-#     value = var.cast_ai_api_key
-#   }
-# }
+  set {
+    name  = "castai.apiKey"
+    value = var.cast_ai_api_key
+  }
+  set {
+    name  = "castai.clusterID"
+    value = var.cluster_id
+  }
+  set {
+    name  = "enableTopologySpreadConstraints"
+    value = "true"
+  }
+}
+
+# Install CAST AI Evictor
+resource "helm_release" "castai_evictor" {
+  depends_on       = [helm_release.castai_cluster_controller]
+  name             = "castai-evictor"
+  repository       = "https://castai.github.io/helm-charts"
+  chart            = "castai-evictor"
+  namespace        = "castai-agent"
+  create_namespace = false
+  timeout          = 600  
+
+  set {
+    name  = "replicaCount"
+    value = "1"  # Ensure the evictor has at least one running instance
+  }
+  
+  set {
+    name  = "managedByCASTAI"
+    value = "false"  # <-- This makes it self-managed
+  }
+}
+
+
+# Install CAST AI Pod Mutator
+resource "helm_release" "castai_pod_mutator" {
+  depends_on       = [helm_release.castai_cluster_controller]
+  name             = "castai-pod-mutator"
+  repository       = "https://castai.github.io/helm-charts"
+  chart            = "castai-pod-mutator"
+  namespace        = "castai-agent"
+  create_namespace = false
+  timeout          = 600  
+
+  set {
+    name  = "castai.apiKey"
+    value = var.cast_ai_api_key
+  }
+  set {
+    name  = "castai.clusterID"
+    value = var.cluster_id
+  }
+  set {
+    name  = "enableTopologySpreadConstraints"
+    value = "true"
+  }
+
+    set {
+    name  = "castai.organizationID"
+    value = var.organization_id  # <-- Add this line
+  }
+}
+
+
+
+# Install CAST AI Workload Autoscaler
+resource "helm_release" "castai_workload_autoscaler" {
+  depends_on       = [helm_release.castai_pod_mutator]
+  name             = "castai-workload-autoscaler"
+  repository       = "https://castai.github.io/helm-charts"
+  chart            = "castai-workload-autoscaler"
+  namespace        = "castai-agent"
+  create_namespace = false
+  timeout          = 600  
+
+  set {
+    name  = "castai.apiKey"
+    value = var.cast_ai_api_key
+  }
+  set {
+    name  = "castai.clusterID"
+    value = var.cluster_id
+  }
+}
