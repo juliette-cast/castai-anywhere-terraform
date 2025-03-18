@@ -23,3 +23,8 @@ variable "organization_id" {
   default     = "" # add your Org ID ..this is required for pod mutator deployment
 }
 
+variable "managed_by_castai" {
+  description = "Flag to indicate if the components are managed by CAST AI"
+  type        = bool
+  default     = false # if its true, CAST overrides every changes made 
+}
