@@ -25,6 +25,11 @@ provider "helm" {
   }
 }
 
+provider "castai" {
+  api_key = var.cast_ai_api_key
+  api_url = var.castai_api_url  # Add this variable
+}
+
 # Create the namespace "castai-agent"
 resource "kubernetes_namespace" "castai" {
   depends_on = [data.external.wait_for_minikube]
