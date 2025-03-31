@@ -5,6 +5,13 @@ variable "cast_ai_api_key" {
   default     = "" # add your api key
 }
 
+variable "castai_api_url" {
+  description = "CAST AI API endpoint"
+  type        = string
+  default     = "https://api.cast.ai"  # or https://api.eu.cast.ai for EU
+}
+
+
 variable "cluster_name" {
   description = "Name of your cluster"
   type        = string
